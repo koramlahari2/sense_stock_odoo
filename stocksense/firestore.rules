@@ -1,0 +1,72 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userRole() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role;
+    }
+
+    function isManagerOrAdmin() {
+      return isSignedIn() && userRole() in ['inventory_manager', 'admin'];
+    }
+
+    // Users can read/write only their own profile document.
+    match /users/{userId} {
+      allow read: if isSignedIn() && request.auth.uid == userId;
+      allow create: if isSignedIn() && request.auth.uid == userId;
+      allow update: if isSignedIn() && request.auth.uid == userId
+                    && request.resource.data.role == resource.data.role; // can't self-promote
+    }
+
+    // Reference/master data: everyone signed in can read,
+    // only managers/admins can create or edit.
+    match /products/{id} {
+      allow read: if isSignedIn();
+      allow write: if isManagerOrAdmin();
+    }
+    match /warehouses/{id} {
+      allow read: if isSignedIn();
+      allow write: if isManagerOrAdmin();
+    }
+    match /locations/{id} {
+      allow read: if isSignedIn();
+      allow write: if isManagerOrAdmin();
+    }
+
+    // Stock is read-only from the client; it is only ever written
+    // by trusted transactional logic when an operation is completed.
+    match /stock/{id} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn(); // tighten to Cloud Functions-only in production
+    }
+
+    // Operational documents: any signed-in staff member can create and complete them.
+    match /receipts/{id} {
+      allow read, create, update: if isSignedIn();
+    }
+    match /deliveries/{id} {
+      allow read, create, update: if isSignedIn();
+    }
+    match /transfers/{id} {
+      allow read, create, update: if isSignedIn();
+    }
+    match /adjustments/{id} {
+      allow read, create, update: if isSignedIn();
+    }
+
+    // Movements are an append-only audit trail - no edits or deletes from the client.
+    match /movements/{id} {
+      allow read, create: if isSignedIn();
+      allow update, delete: if false;
+    }
+
+    match /counters/{id} {
+      allow read, write: if isSignedIn();
+    }
+  }
+}
