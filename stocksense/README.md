@@ -380,6 +380,10 @@ This creates the 3 BuildPro Industries warehouses, 8 products, one rack location
 
 ```bash
 streamlit run app.py
+
+or 
+
+..\.venv\Scripts\python.exe -m streamlit run app.py
 ```
 Sign up for an account (role: `inventory_manager` for full access), then log in.
 
