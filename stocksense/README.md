@@ -52,26 +52,322 @@ Because this app is a Streamlit server (not a browser SPA), all Python code — 
 
 > Note on the Admin SDK vs. `firestore.rules`: the Firebase **Admin SDK** (used here since Streamlit is a Python server) bypasses Firestore Security Rules by design — rules only apply to direct client SDK access. `firestore.rules` is still included as defense-in-depth for the future / in case you add a mobile or JS client, but the actual access control in this app happens in Python (`src/auth.py` roles + your own checks). If you need rules to be the real enforcement boundary, you'd call Firestore from the browser with the client SDK instead of Admin SDK.
 
-## 3. Local setup
+## 3. Local setup# Sense Stock Odoo
+---
+
+## 🚀 Local Setup
+
+### 1. Clone the Repository
 
 ```bash
-python -m venv venv
-source venv/bin/activate        # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env            # then fill in your real values
-mkdir -p secrets                # put firebase-service-account.json here
+git clone https://github.com/koramlahari2/sense_stock_odoo.git
+cd sense_stock_odoo
 ```
 
-Enable in Firebase Console:
-- **Authentication** → Sign-in method → Email/Password → Enable
-- **Firestore Database** → Create database (production mode, not test mode)
+---
 
-Deploy the security rules (optional but recommended):
+### 2. Create a Python Virtual Environment
+
 ```bash
-npm install -g firebase-tools     # one-time, needs Node.js
+python -m venv .venv
+```
+
+---
+
+### 3. Activate the Virtual Environment
+
+#### Windows PowerShell
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+#### Windows Command Prompt
+
+```cmd
+.venv\Scripts\activate
+```
+
+#### macOS / Linux
+
+```bash
+source .venv/bin/activate
+```
+
+---
+
+### 4. Install Dependencies
+
+Install all required Python packages:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+The main dependencies include:
+
+- Streamlit
+- Firebase Admin SDK
+- Pyrebase4
+- Python Dotenv
+- Google Generative AI
+- OpenAI
+- Pandas
+
+---
+
+## 🔐 Environment Configuration
+
+### 5. Create the `.env` File
+
+Copy the example environment file.
+
+#### Windows PowerShell
+
+```powershell
+Copy-Item .env.example .env
+```
+
+#### macOS / Linux
+
+```bash
+cp .env.example .env
+```
+
+Open the `.env` file and add your actual configuration values and API keys.
+
+Example:
+
+```env
+FIREBASE_API_KEY=
+FIREBASE_AUTH_DOMAIN=
+FIREBASE_PROJECT_ID=
+FIREBASE_STORAGE_BUCKET=
+FIREBASE_MESSAGING_SENDER_ID=
+FIREBASE_APP_ID=
+FIREBASE_DATABASE_URL=
+
+GOOGLE_APPLICATION_CREDENTIALS=./secrets/firebase-service-account.json
+
+AI_PROVIDER=gemini
+GEMINI_MODEL=gemini-3.8-flash
+GEMINI_API_KEY=
+XAI_API_KEY=
+```
+
+> ⚠️ Never commit your `.env` file to GitHub.
+>
+> ⚠️ Never expose API keys or Firebase private credentials publicly.
+
+---
+
+## 🔥 Firebase Service Account Configuration
+
+### 6. Create the Secrets Directory
+
+#### Windows PowerShell
+
+```powershell
+New-Item -ItemType Directory -Force secrets
+```
+
+#### macOS / Linux
+
+```bash
+mkdir -p secrets
+```
+
+Place your Firebase service-account JSON file inside the `secrets` directory:
+
+```text
+secrets/firebase-service-account.json
+```
+
+The expected structure is:
+
+```text
+sense_stock_odoo/
+│
+├── secrets/
+│   └── firebase-service-account.json
+```
+
+> ⚠️ The Firebase service-account JSON contains private credentials.
+> Do not upload it to GitHub.
+
+---
+
+## ▶️ Run the Application
+
+### 7. Start the Streamlit Application
+
+Activate your virtual environment first:
+
+#### Windows PowerShell
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+Then run the Streamlit application:
+
+```bash
+streamlit run <your_streamlit_file>.py
+```
+
+For example, if your main application file is `app.py`:
+
+```bash
+streamlit run app.py
+```
+
+The application will normally be available at:
+
+```text
+http://localhost:8501
+```
+
+---
+
+# 🔥 Firebase Firestore Rules
+
+Firebase CLI is required if you want to deploy Firestore security rules.
+
+### 8. Install Firebase CLI
+
+Firebase CLI requires Node.js.
+
+Install Firebase CLI globally:
+
+```bash
+npm install -g firebase-tools
+```
+
+This only needs to be done once on your computer.
+
+---
+
+### 9. Login to Firebase
+
+```bash
 firebase login
+```
+
+A browser window will open. Sign in using the Google account associated with your Firebase project.
+
+---
+
+### 10. Deploy Firestore Rules
+
+After logging in:
+
+```bash
 firebase deploy --only firestore:rules
 ```
+
+Make sure your Firebase project is correctly configured before deploying the rules.
+
+---
+
+
+---
+
+## 🔒 Security
+
+The following files and folders contain local or sensitive information and should **not** be committed to GitHub:
+
+```text
+.env
+.venv/
+secrets/
+secrets/firebase-service-account.json
+```
+
+The repository should contain:
+
+```text
+.env.example
+requirements.txt
+.gitignore
+README.md
+```
+
+The `.env.example` file should contain only placeholder values and no real API keys or credentials.
+
+---
+
+## 🛠️ Troubleshooting
+
+### Firebase Admin Module Not Found
+
+If you see:
+
+```text
+ModuleNotFoundError: No module named 'firebase_admin'
+```
+
+activate the virtual environment:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+Then install the Firebase Admin SDK:
+
+```bash
+python -m pip install firebase-admin
+```
+
+Verify the installation:
+
+```bash
+python -c "import firebase_admin; print(firebase_admin.__version__)"
+```
+
+Then restart Streamlit.
+
+---
+
+### Check Installed Dependencies
+
+You can verify the installed packages with:
+
+```bash
+python -m pip list
+```
+
+---
+
+## 📦 Requirements
+
+The project uses the following main Python dependencies:
+
+```text
+streamlit>=1.38
+firebase-admin>=6.5
+pyrebase4>=4.7
+python-dotenv>=1.0
+google-generativeai>=0.7
+openai>=1.40
+pandas>=2.2
+```
+
+Install them using:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+---
+
+## ⚠️ Important Notes
+
+- Do not upload `.venv` to GitHub.
+- Do not upload `.env` to GitHub.
+- Do not upload Firebase service-account credentials.
+- Do not expose Gemini, OpenAI, or other API keys.
+- Use `.env.example` to document required environment variables.
+- Use `requirements.txt` to reproduce the Python environment.
 
 ## 4. Seed demo data
 
